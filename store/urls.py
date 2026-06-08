@@ -4,7 +4,9 @@ from .views import (
     add_to_cart,
     clear_cart,
     get_cart,
-    remove_from_cart
+    remove_from_cart,
+    checkout,
+    orders
 )
 
 
@@ -18,7 +20,8 @@ from .views import products, add_to_cart
 
 urlpatterns = [
     path('', products, name='products'),
-
+    path('checkout/', checkout, name='checkout'),
+    path('orders/', orders, name='orders'),
     path(
         'add-to-cart/<int:product_id>/',
         add_to_cart,

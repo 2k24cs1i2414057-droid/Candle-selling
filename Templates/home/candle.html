@@ -52,6 +52,32 @@ nav{position:sticky;top:0;z-index:1000;background:rgba(13,13,13,0.97);backdrop-f
 .btn-primary:hover{background:var(--gold-light);transform:translateY(-2px)}
 .btn-outline{background:transparent;color:var(--gold);border:1px solid rgba(201,168,76,0.5);padding:14px 36px;font-family:'Jost',sans-serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all 0.3s}
 .btn-outline:hover{background:rgba(201,168,76,0.08);border-color:var(--gold)}
+.nav-btn{
+    background:transparent;
+    border:1px solid rgba(201,168,76,0.3);
+    color:var(--gold);
+    padding:8px 16px;
+    border-radius:20px;
+    font-size:12px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    transition:all .3s;
+}
+
+.nav-btn:hover{
+    background:var(--gold);
+    color:var(--dark);
+}
+
+.logout-btn{
+    border-color:#b91c1c;
+    color:#ff7b7b;
+}
+
+.logout-btn:hover{
+    background:#b91c1c;
+    color:white;
+}
 
 /* TRUST */
 .trust-strip{background:var(--dark2);border-top:1px solid rgba(201,168,76,0.12);border-bottom:1px solid rgba(201,168,76,0.12);padding:18px 40px;display:flex;justify-content:center;gap:60px;flex-wrap:wrap}
@@ -278,21 +304,47 @@ footer{background:var(--dark);border-top:1px solid rgba(201,168,76,0.12);padding
     <li><a href="#products" onclick="scrollToProducts()">Shop</a></li>
     <li><a href="#about">About</a></li>
     <li><a href="#contact">Contact</a></li>
+    
   </ul>
   <div class="nav-actions">
+
+    <a href="{% url 'orders' %}" class="nav-btn">
+        📦 Orders
+    </a>
+
+    {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="nav-btn logout-btn">
+            Logout
+        </a>
+    {% else %}
+        <a href="{% url 'login' %}" class="nav-btn login-btn">
+            Login
+        </a>
+
+        <a href="{% url 'register' %}" class="nav-btn register-btn">
+            Register
+        </a>
+    {% endif %}
+
     <div class="search-bar">
-      <span style="color:var(--gold)">&#128269;</span>
-      <input type="text" placeholder="Search candles..." id="searchInput" oninput="filterProducts(this.value)">
+        <span style="color:var(--gold)">&#128269;</span>
+        <input type="text"
+               placeholder="Search candles..."
+               id="searchInput"
+               oninput="filterProducts(this.value)">
     </div>
+
     <button class="wishlist-btn" onclick="toggleWishlistPage()" title="Wishlist">
-      &#9825;
-      <span class="w-badge" id="wishCount" style="display:none">0</span>
+        &#9825;
+        <span class="w-badge" id="wishCount" style="display:none">0</span>
     </button>
+
     <button class="cart-btn" onclick="toggleCart()">
-      &#128722; Cart
-      <span class="cart-badge" id="cartCount">0</span>
+        &#128722; Cart
+        <span class="cart-badge" id="cartCount">0</span>
     </button>
-  </div>
+
+</div>
 </nav>
 
 <!-- CART OVERLAY + SIDEBAR -->
@@ -556,6 +608,8 @@ footer{background:var(--dark);border-top:1px solid rgba(201,168,76,0.12);padding
 </footer>
 
 <script>
+
+  
 const PRODUCTS = {{ products_json|safe }};
 
 let cart = [], wishlist = [], modalQty = 1, currentModalId = null, activeFilter = 'all';
@@ -702,7 +756,7 @@ function updateCartUI() {
     <div class="cart-line"><span>Subtotal (${count} items)</span><span>₹${sub}</span></div>
     <div class="cart-line"><span>Shipping</span><span>${ship === 0 ? '<span style="color:#4ade80">FREE</span>' : '₹' + ship}</span></div>
     <div class="cart-total"><span>Total</span><span>₹${sub + ship}</span></div>
-    <button class="checkout-btn" onclick="toggleCart();showCheckout()">Proceed to Checkout &#8594;</button>
+    <button class="checkout-btn" onclick="checkoutOrder()">Proceed to Checkout &#8594;</button>
     <button class="continue-btn" onclick="toggleCart()">Continue Shopping</button>
   `;
 }
@@ -854,6 +908,22 @@ function scrollToProducts() { document.getElementById('products').scrollIntoView
 
 renderProducts(PRODUCTS);
 updateCartUI();
+
+
+function checkoutOrder() {
+    fetch('/checkout/')
+    .then(response => response.json())
+    .then(data => {
+        alert("Order placed successfully!");
+
+        fetch('/get-cart/')
+        .then(response => response.json())
+        .then(cartData => {
+            cart = cartData.items;
+            updateCartUI();
+        });
+    });
+}
 </script>
 </body>
 </html>

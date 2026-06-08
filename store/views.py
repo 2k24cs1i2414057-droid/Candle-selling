@@ -37,7 +37,7 @@ def add_to_cart(request, product_id):
 
     candle = Candle.objects.get(id=product_id)
 
-    cart, created = Cart.objects.get_or_create(id=1)
+    cart, created = Cart.objects.get_or_create( user=request.user)
 
     item, created = CartItem.objects.get_or_create(
         cart=cart,
@@ -60,9 +60,10 @@ def add_to_cart(request, product_id):
 
 from django.http import JsonResponse
 from .models import CartItem
-
+@login_required
 def clear_cart(request):
-    CartItem.objects.all().delete()
+    cart = Cart.objects.get(user=request.user)
+    CartItem.objects.filter(cart=cart).delete()
     return JsonResponse({"success": True})
 
 
@@ -72,7 +73,7 @@ from django.contrib.auth.decorators import login_required
 @login_required
 def get_cart(request):
 
-    cart, created = Cart.objects.get_or_create(id=1)
+    cart, created = Cart.objects.get_or_create( user=request.user)
 
     items = []
 
@@ -91,9 +92,10 @@ def get_cart(request):
     })
 
 from .models import Cart, CartItem
-
+from django.contrib.auth.decorators import login_required
+@login_required
 def remove_from_cart(request, product_id):
-    cart = Cart.objects.get(id=1)
+    cart = Cart.objects.get(user=request.user)
 
     CartItem.objects.filter(
         cart=cart,
@@ -105,3 +107,71 @@ def remove_from_cart(request, product_id):
     })
 
     return JsonResponse({"success": True})
+
+
+
+from .models import Order, OrderItem
+
+@login_required
+def checkout(request):
+
+    
+
+    cart = Cart.objects.get(user=request.user)
+
+    order = Order.objects.create(
+        user=request.user
+    )
+
+    total = 0
+
+    for item in CartItem.objects.filter(cart=cart):
+
+        OrderItem.objects.create(
+            order=order,
+            candle=item.candle,
+            quantity=item.quantity
+        )
+
+        total += item.candle.price * item.quantity
+
+    order.total_price = total
+    order.save()
+
+    CartItem.objects.filter(cart=cart).delete()
+
+    return JsonResponse({
+        "success": True,
+        "order_id": order.id
+    })
+
+
+# @login_required
+# def my_orders(request):
+
+
+from .models import Order
+from django.db.models import Sum
+
+@login_required
+def orders(request):
+
+    user_orders = Order.objects.filter(
+        user=request.user
+    ).order_by('-created_at')
+
+    total_spent = (
+        user_orders.aggregate(
+            Sum('total_price')
+        )['total_price__sum']
+        or 0
+    )
+
+    return render(
+        request,
+        'home/orders.html',
+        {
+            'orders': user_orders,
+            'total_spent': total_spent
+        }
+    )

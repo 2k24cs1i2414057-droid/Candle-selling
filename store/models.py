@@ -34,3 +34,17 @@ class CartItem(models.Model):
         on_delete=models.CASCADE
     )
     quantity = models.IntegerField(default=1)
+
+
+from django.contrib.auth.models import User
+
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    #status = models.CharField(max_length=20,default="Pending")
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    candle = models.ForeignKey(Candle, on_delete=models.CASCADE)
+    quantity = models.IntegerField(default=1)
