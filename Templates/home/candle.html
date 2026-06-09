@@ -154,6 +154,18 @@ nav{position:sticky;top:0;z-index:1000;background:rgba(13,13,13,0.97);backdrop-f
 .empty-cart-icon{font-size:44px;margin-bottom:14px}
 .empty-cart p{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--cream);margin-bottom:6px}
 
+/* CART ORDER SUMMARY BOX */
+.cart-order-summary{background:var(--dark3);border:1px solid rgba(201,168,76,0.15);border-radius:4px;padding:18px;margin-bottom:14px}
+.cart-order-summary-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--cream);margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(201,168,76,0.1)}
+.cart-summary-items{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.cart-sum-item{display:flex;align-items:center;gap:10px}
+.cart-sum-img{width:46px;height:46px;object-fit:cover;border-radius:3px;border:1px solid rgba(201,168,76,0.2);flex-shrink:0}
+.cart-sum-info{flex:1;min-width:0}
+.cart-sum-name{font-size:13px;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.cart-sum-qty{font-size:11px;color:var(--text-muted)}
+.cart-sum-price{color:var(--gold);font-size:14px;font-weight:500;flex-shrink:0}
+.cart-summary-lines{border-top:1px solid rgba(201,168,76,0.1);padding-top:12px}
+
 /* MODAL */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:3000;opacity:0;pointer-events:none;transition:opacity 0.3s;display:flex;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.open{opacity:1;pointer-events:all}
@@ -503,14 +515,6 @@ footer{background:var(--dark);border-top:1px solid rgba(201,168,76,0.12);padding
     <div class="section-label">Handcrafted with love</div>
     <h2 class="section-title">Our <em>Signature</em> Collection</h2>
   </div>
-  <div class="filter-tabs">
-    <button class="filter-tab active" onclick="filterTab(this,'all')">All Candles</button>
-    <button class="filter-tab" onclick="filterTab(this,'red')">Red Collection</button>
-    <button class="filter-tab" onclick="filterTab(this,'ivory')">Ivory Collection</button>
-    <button class="filter-tab" onclick="filterTab(this,'bear')">Teddy Bears</button>
-    <button class="filter-tab" onclick="filterTab(this,'floral')">Floral</button>
-    <button class="filter-tab" onclick="filterTab(this,'bubble')">Bubble Cubes</button>
-  </div>
   <div class="product-grid" id="productGrid"></div>
 </div>
 
@@ -753,10 +757,28 @@ function updateCartUI() {
   const sub = cart.reduce((s, c) => s + c.price * c.qty, 0);
   const ship = sub >= 499 ? 0 : 49;
   footerEl.innerHTML = `
-    <div class="cart-line"><span>Subtotal (${count} items)</span><span>₹${sub}</span></div>
-    <div class="cart-line"><span>Shipping</span><span>${ship === 0 ? '<span style="color:#4ade80">FREE</span>' : '₹' + ship}</span></div>
-    <div class="cart-total"><span>Total</span><span>₹${sub + ship}</span></div>
-    <button class="checkout-btn" onclick="checkoutOrder()">Proceed to Checkout &#8594;</button>
+    <div class="cart-order-summary">
+      <div class="cart-order-summary-title">Order Summary</div>
+      <div class="cart-summary-items">
+        ${cart.map(item => `
+          <div class="cart-sum-item">
+            <img src="${item.img}" alt="${item.name}" class="cart-sum-img">
+            <div class="cart-sum-info">
+              <div class="cart-sum-name">${item.name}</div>
+              <div class="cart-sum-qty">Qty: ${item.qty}</div>
+            </div>
+            <div class="cart-sum-price">₹${item.price * item.qty}</div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="cart-summary-lines">
+        <div class="cart-line"><span>Subtotal</span><span>₹${sub}</span></div>
+        <div class="cart-line"><span>Shipping</span><span>${ship === 0 ? '<span style="color:#4ade80">FREE</span>' : '₹' + ship}</span></div>
+        <div class="cart-line"><span>Discount</span><span style="color:var(--text-muted)">—</span></div>
+        <div class="cart-total"><span>Total</span><span>₹${sub + ship}</span></div>
+      </div>
+    </div>
+    <button class="checkout-btn" onclick="document.getElementById('cartSidebar').classList.remove('open');document.getElementById('cartOverlay').classList.remove('open');showCheckout()">Place Order ✦</button>
     <button class="continue-btn" onclick="toggleCart()">Continue Shopping</button>
   `;
 }
